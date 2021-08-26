@@ -1,0 +1,50 @@
+struct DSU{
+    vector<int> parent, size;
+
+    DSU(int n){
+        for (int q = 0; q < n; q++){
+            parent.push_back(q);
+        }
+        size.assign(n, 1);
+    }
+
+    int root(int x){
+        vector<int> a;
+        while (parent[x] != x){
+            a.push_back(x);
+            x = parent[x];
+        }
+        for (int q: a){
+            parent[q] = x;
+        }
+        return x;
+    }
+
+    void merge(int x, int y){
+        x = root(x), y = root(y);
+        if (x == y){
+            return;
+        }
+        if (size[x] < size[y]){
+            parent[x] = y, size[y] += size[x];
+        }else{
+            parent[y] = x, size[x] += size[y];
+        }
+    }
+};
+
+vector<pair<p, int>> edges;
+
+int Kraskal(){
+    int ans = 0;
+    sort(edges.begin(), edges.end(), [](pair<p, int> x, pair<p, int> y){return x.second < y.second;});
+    DSU dsu = DSU(n);
+    for (pair<p, int> q: edges){
+        int x = dsu.root(q.first.first), y = dsu.root(q.first.second);
+        if (x != y){
+            dsu.merge(x, y);
+            ans += q.second;
+        }
+    }
+    return ans;
+}

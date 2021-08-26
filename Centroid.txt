@@ -1,0 +1,76 @@
+vector<int> size1, was_centroid;
+
+int sizes(int vertex, int parent){
+    size1[vertex] = 1;
+    for (p q: d[vertex]){
+        if (q.first != parent && was_centroid[q.first] != number){
+            size1[vertex] += sizes(q.first, vertex);
+        }
+    }
+    return size1[vertex];
+}
+
+int centroid(int vertex, int parent, int n){
+    bool flag = true;
+    for (p q: d[vertex]){
+        if (q.first != parent && was_centroid[q.first] != number){
+            int k = centroid(q.first, vertex, n);
+            if (k != -1){
+                return k;
+            }
+            flag &= (size1[q.first] <= n/2);
+        }
+    }
+    flag &= (n-size1[vertex] <= n/2);
+    return (flag ? vertex : -1);
+}
+
+vector<map<int, int>> is;
+map<int, int> all;
+
+void DFS(int vertex, int parent, int h){
+    if (mark[vertex] == number){
+        is.back()[h]++, all[h]++;
+    }
+    for (p q: d[vertex]){
+        if (q.first != parent && was_centroid[q.first] != number){
+            DFS(q.first, vertex, h+q.second);
+        }
+    }
+}
+
+int centroid_decomposition(int vertex, int n, int x){
+    sizes(vertex, -1);
+    int k = centroid(vertex, -1, n);
+    sizes(k, -1);
+    int ans = 0;
+    is = {}, all = {};
+    if (mark[k] == number){
+        all[0]++;
+    }
+    for (p q: d[k]){
+        if (was_centroid[q.first] != number){
+            is.emplace_back();
+            DFS(q.first, k, q.second);
+        }
+    }
+    for (p q: all){
+        if (all.find(x-q.first) != all.end()){
+            ans += q.second*all[x-q.first];
+        }
+    }
+    for (auto &q: is){
+        for (p q1: q){
+            if (q.find(x-q1.first) != q.end()){
+                ans -= q1.second*q[x-q1.first];
+            }
+        }
+    }
+    was_centroid[k] = number;
+    for (p q: d[k]){
+        if (was_centroid[q.first] != number){
+            ans += centroid_decomposition(q.first, size1[q.first], x);
+        }
+    }
+    return ans;
+}

@@ -1,0 +1,101 @@
+mt19937 random1(179);
+
+struct Node{
+    Node* l;
+    Node* r;
+    int x, y, sum1, num, len;
+
+    Node(int x1): x(x1), y(random1()), l(nullptr), r(nullptr), sum1(x1), num(1), len(1){}
+};
+
+void update(Node* tree){
+    if (tree == nullptr){
+        return;
+    }
+    tree->sum1 = tree->x*tree->num, tree->len = tree->num;
+    if (tree->l != nullptr){
+        tree->sum1 += tree->l->sum1, tree->len += tree->l->len;
+    }
+    if (tree->r != nullptr){
+        tree->sum1 += tree->r->sum1, tree->len += tree->r->len;
+    }
+}
+
+Node* merge(Node* tree1, Node* tree2){
+    if (tree1 == nullptr){
+        return tree2;
+    }
+    if (tree2 == nullptr){
+        return tree1;
+    }
+    if (tree1->y < tree2->y){
+        tree1->r = merge(tree1->r, tree2);
+        update(tree1);
+        return tree1;
+    }else{
+        tree2->l = merge(tree1, tree2->l);
+        update(tree2);
+        return tree2;
+    }
+}
+
+pair<Node*, Node*> split(Node* tree, int x){
+    if (tree == nullptr){
+        return {nullptr, nullptr};
+    }
+    if (x == tree->x){
+        Node* right = tree->r;
+        tree->r = nullptr;
+        update(tree);
+        return {tree, right};
+    }else if (x < tree->x){
+        pair<Node*, Node*> tree1 = split(tree->l, x);
+        tree->l = nullptr;
+        update(tree);
+        return {tree1.first, merge(tree1.second, tree)};
+    }else{
+        pair<Node*, Node*> tree1 = split(tree->r, x);
+        tree->r = nullptr;
+        update(tree);
+        return {merge(tree, tree1.first), tree1.second};
+    }
+}
+
+int sum_k(Node* tree, int k){
+    if (tree == nullptr){
+        return 0;
+    }
+    int now = (tree->l == nullptr ? 0 : tree->l->len), sum1 = (tree->l == nullptr ? 0 : tree->l->sum1);
+    if (now <= k && now+tree->num >= k){
+        return sum1+tree->x*(k-now);
+    }else if (now < k){
+        return sum_k(tree->r, k-now-tree->num)+sum1+tree->x*tree->num;
+    }else{
+        return sum_k(tree->l, k);
+    }
+}
+
+Node* add(Node* tree, int x){
+    pair<Node*, Node*> tree1 = split(tree, x);
+    pair<Node*, Node*> tree2 = split(tree1.first, x-1);
+    if (tree2.second == nullptr){
+        Node* root = new Node(x);
+        return merge(merge(tree2.first, root), tree1.second);
+    }else{
+        tree2.second->num++;
+        update(tree2.second);
+        return merge(merge(tree2.first, tree2.second), tree1.second);
+    }
+}
+
+Node* del(Node* tree, int x){
+    pair<Node*, Node*> tree1 = split(tree, x);
+    pair<Node*, Node*> tree2 = split(tree1.first, x-1);
+    if (tree2.second == nullptr || tree2.second->num == 1){
+        return merge(tree2.first, tree1.second);
+    }else{
+        tree2.second->num--;
+        update(tree2.second);
+        return merge(merge(tree2.first, tree2.second), tree1.second);
+    }
+}

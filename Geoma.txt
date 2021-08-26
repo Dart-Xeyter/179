@@ -1,0 +1,139 @@
+const long double PI = 3.141592653589793, E = 0.00000001;
+struct Pt;
+long double abs(Pt x);
+
+struct Pt{
+    long double x, y;
+
+    Pt(long double x1=0, long double y1=0): x(x1), y(y1){}
+
+    Pt operator+(){
+        return Pt(x, y);
+    }
+
+    Pt operator+(Pt point){
+        return Pt(x+point.x, y+point.y);
+    }
+
+    Pt operator-(){
+        return Pt(-x, -y);
+    }
+
+    Pt operator-(Pt point){
+        return Pt(x-point.x, y-point.y);
+    }
+
+    Pt operator*(long double k){
+        return Pt(x*k, y*k);
+    }
+
+    Pt operator/(long double k){
+        return Pt(x/k, y/k);
+    }
+
+    bool operator==(Pt point){
+        return abs(x-point.x) < E && abs(y-point.y) < E;
+    }
+
+    bool operator!=(Pt point){
+        return !(*this == point);
+    }
+
+    Pt norm(){
+        return (*this == Pt() ? Pt() : *this/abs(*this));
+    }
+};
+
+istream& operator>>(istream& cin1, Pt &x){
+    cin1 >> x.x >> x.y;
+    return cin1;
+}
+
+ostream& operator<<(ostream& cout1, Pt x){
+    cout1 << x.x << ' ' << x.y;
+    return cout1;
+}
+
+long double dot(Pt x, Pt y){
+    return x.x*y.x+x.y*y.y;
+}
+
+long double cross(Pt x, Pt y){
+    return x.x*y.y-x.y*y.x;
+}
+
+long double abs(Pt x){
+    return hypot(x.x, x.y);
+}
+
+long double dist(Pt x, Pt y){
+    return abs(Pt(x-y));
+}
+
+struct Ln;
+pair<int, Pt> inter(Ln line, Ln line1);
+
+struct Ln{
+    long double a, b, c;
+
+    Ln(Pt x, Pt y){
+        a = y.y-x.y, b = x.x-y.x;
+        c = -a*x.x-b*x.y;
+    }
+
+    bool operator==(Ln x){
+        return abs(a*x.b-b*x.a) < E && abs(a*x.c-c*x.a) < E;
+    }
+
+    bool operator!=(Ln x){
+        return !(*this == x);
+    }
+
+    Ln per(Pt x){
+        return Ln(x, x+Pt(a, b));
+    }
+
+    Pt point_per(Pt x){
+        return inter(*this, per(x)).second;
+    }
+
+    long double dist(Pt x){
+        return ::dist(x, point_per(x));
+    }
+
+    Pt point_on(){
+        if (abs(a) < E){
+            return Pt(0, -c/b);
+        }
+        return Pt(-c/a, 0);
+    }
+};
+
+Ln build(long double a, long double b, long double c){
+    Ln line = Ln(Pt(), Pt());
+    line.a = a, line.b = b, line.c = c;
+    return line;
+}
+
+bool is_parallel(Ln line, Ln line1){
+    return abs(line.a*line1.b-line.b*line1.a) < E;
+}
+
+pair<int, Pt> inter(Ln line, Ln line1){
+    if (line == line1){
+        return {2, Pt()};
+    }
+    if (is_parallel(line, line1)){
+        return {0, Pt()};
+    }
+    return {1, Pt((line1.c*line.b-line.c*line1.b)/(line.a*line1.b-line1.a*line.b), (line1.c*line.a-line.c*line1.a)/(line.b*line1.a-line.a*line1.b))};
+}
+
+
+bool on_ray(Pt x, Pt y, Pt z){
+    return abs(cross(y-x, z-x)) < E && (x == z || dot(y-x, z-x) > -E);
+}
+
+bool on_seg(Pt x, Pt y, Pt z){
+    return on_ray(x, y, z) && on_ray(y, x, z);
+}

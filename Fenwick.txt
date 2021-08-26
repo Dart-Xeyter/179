@@ -1,0 +1,23 @@
+struct Fen{
+    vector<int> fen;
+    int n;
+
+    Fen(int n1){
+        n = n1;
+        fen.assign(n, 0);
+    }
+
+    void plus(int q, int x){
+        for (; q < n; q |= (q + 1)) {
+            fen[q] += x;
+        }
+    }
+
+    int sum(int q){
+        int ans = 0;
+        for (; q >= 0; q = (q & (q+1))-1){
+            ans += fen[q];
+        }
+        return ans;
+    }
+};

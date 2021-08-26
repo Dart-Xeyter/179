@@ -1,0 +1,194 @@
+long double PI = 3.14159265358979323846;
+
+struct Complex{
+    long double x, y;
+
+    Complex(long double x1=0, long double y1=0): x(x1), y(y1){}
+
+    Complex operator+(Complex z){
+        return Complex(x+z.x, y+z.y);
+    }
+
+    Complex operator-(Complex z){
+        return Complex(x-z.x, y-z.y);
+    }
+
+    Complex operator*(Complex z){
+        return Complex(x*z.x-y*z.y, x*z.y+y*z.x);
+    }
+};
+
+vector<Complex> w;
+vector<int> pos;
+int len;
+
+void make_FFT(int n){
+    len = 1, w = {Complex(), Complex(1)};
+    int q2 = 0;
+    while (len < n){
+        len *= 2, q2++;
+        for (int q1 = 0; q1 < len; q1++){
+            w.push_back(Complex(cosl(2*PI*q1/len), sinl(2*PI*q1/len)));
+        }
+    }
+    pos.assign(len, -1);
+    for (int q = 0; q < len; q++){
+        int k = 0;
+        for (int q1 = 0; q1 < q2; q1++){
+            k |= (((q >> q1) & 1) << (q2-q1-1));
+        }
+        pos[q] = k;
+    }
+}
+
+vector<Complex> FFT(vector<Complex> a){
+    int n = a.size();
+    vector<Complex> ans(n);
+    for (int q = 0; q < n; q++){
+        ans[pos[q]] = a[q];
+    }
+    for (int q = 1; q < n; q <<= 1){
+        int q_ = (q << 1);
+        for (int q1 = 0; q1 < n; q1 += q_){
+            for (int q2 = q1; q2 < q1+q; q2++){
+                Complex x = ans[q2], y = ans[q2+q];
+                ans[q2] = x+w[q_+q2-q1]*y, ans[q2+q] = x-w[q_+q2-q1]*y;
+            }
+        }
+    }
+    return ans;
+}
+
+vector<int> rev_FFT(vector<Complex> a){
+    int n = a.size();
+    vector<Complex> ans1 = FFT(a);
+    vector<int> ans;
+    for (Complex &q: ans1){
+        ans.push_back(llround(q.x/n));
+    }
+    reverse(ans.begin()+1, ans.end());
+    return ans;
+}
+
+vector<int> mul(vector<int> &a, vector<int> &b){
+    int len1 = 1;
+    while (len1 < a.size()+b.size()){
+        len1 *= 2;
+    }
+    vector<Complex> a1, b1;
+    for (int q: a){
+        a1.push_back(Complex(q));
+    }
+    for (int q = a1.size(); q < len1; q++){
+        a1.push_back(Complex());
+    }
+    for (int q: b){
+        b1.push_back(Complex(q));
+    }
+    for (int q = b1.size(); q < len1; q++){
+        b1.push_back(Complex());
+    }
+    make_FFT(len1);
+    vector<Complex> val1 = FFT(a1), val2 = FFT(b1), c1;
+    for (int q = 0; q < val1.size(); q++){
+        c1.push_back(val1[q]*val2[q]);
+    }
+    vector<int> c = rev_FFT(c1);
+    return c;
+}
+
+
+
+
+
+###################################################################################################
+
+
+
+
+
+int C = 998244353, gen = 3;
+
+int pow1(int x, int y){
+    if (y == 0){
+        return 1;
+    }
+    if (y % 2 == 0){
+        return pow1(x*x % C, y >> 1);
+    }
+    return pow1(x, y-1)*x % C;
+}
+
+vector<int> w, pos;
+
+void make_FFT(int n){
+    int len = 1, q2 = 0;
+    while (len < n){
+        len <<= 1, q2++;
+    }
+    w = {0}, pos = {};
+    for (int q = 1; q <= len; q <<= 1){
+        w.push_back(pow1(gen, (C-1)/q));
+        for (int q1 = 1; q1 < q; q1++){
+            w.push_back(w.back()*w[q] % C);
+        }
+        rotate(w.begin()+q, w.end()-1, w.end());
+    }
+    for (int q = 0; q < len; q++){
+        int x = 0;
+        for (int q1 = 0; q1 < q2; q1++){
+            x |= (((q >> q1) & 1) << (q2-q1-1));
+        }
+        pos.push_back(x);
+    }
+}
+
+vector<int> FFT(vector<int> a){
+    int n = a.size();
+    vector<int> a1(n);
+    for (int q = 0; q < n; q++){
+        a1[pos[q]] = a[q];
+    }
+    a = a1;
+    for (int q = 1; q < n; q <<= 1){
+        int q_2 = (q << 1);
+        for (int q1 = 0; q1 < n; q1 += q_2){
+            for (int q2 = q1; q2 < q1+q; q2++){
+                int x = a[q2], w_y = w[q_2+q2-q1]*a[q2+q] % C;
+                a[q2] = x+w_y-(x+w_y >= C)*C, a[q2+q] = x-w_y+(x-w_y < C)*C;
+            }
+        }
+    }
+    return a;
+}
+
+vector<int> rev_FFT(vector<int> a){
+    int n = a.size();
+    vector<int> ans = FFT(a);
+    int rev_n = pow1(n, C-2);
+    for (int q = 0; q < n; q++){
+        ans[q] = ans[q]*rev_n % C;
+    }
+    reverse(ans.begin()+1, ans.end());
+    return ans;
+}
+
+vector<int> mul(vector<int> a, vector<int> b){
+    int len = 1;
+    while (len < a.size()+b.size()){
+        len *= 2;
+    }
+    make_FFT(len);
+    for (int q = a.size(); q < len; q++){
+        a.push_back(0);
+    }
+    for (int q = b.size(); q < len; q++){
+        b.push_back(0);
+    }
+    vector<int> val1 = FFT(a), val2 = FFT(b), c1;
+    for (int q = 0; q < len; q++){
+        c1.push_back(val1[q]*val2[q] % C);
+    }
+    vector<int> c = rev_FFT(c1);
+    return c;
+}

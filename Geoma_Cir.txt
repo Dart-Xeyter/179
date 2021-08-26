@@ -1,0 +1,68 @@
+struct Cr;
+pair<int, vector<Pt>> inter(Cr cir, Cr cir1);
+
+struct Cr{
+    long double x, y, r;
+    Pt c;
+
+    Cr(long double x1=0, long double y1=0, long double r1=0): x(x1), y(y1), r(r1), c(x1, y1){}
+
+    bool operator==(Cr cir){
+        return c == cir.c && abs(r-cir.r) < E;
+    }
+
+    bool operator!=(Cr cir){
+        return !(*this == cir);
+    }
+
+    pair<int, vector<Pt>> tangent(Pt point){
+        long double w = dist(c, point);
+        if (w+E < r){
+            return {0, {}};
+        }
+        if (abs(w-r) < E){
+            return {1, {point}};
+        }
+        return inter(*this, Cr(point.x, point.y, sqrt(w*w-r*r)));
+    }
+};
+
+istream& operator>>(istream& cin1, Cr &x){
+    cin1 >> x.x >> x.y >> x.r;
+    x.c = Pt(x.x, x.y);
+    return cin1;
+}
+
+Ln rad(Cr cir, Cr cir1){
+    return build(2*(cir1.x-cir.x), 2*(cir1.y-cir.y), cir.x*cir.x+cir.y*cir.y+cir1.r*cir1.r-cir1.x*cir1.x-cir1.y*cir1.y-cir.r*cir.r);
+}
+
+pair<int, vector<Pt>> inter(Ln line, Cr cir){
+    Pt x = line.point_per(cir.c);
+    long double w = dist(cir.c, x);
+    if (w > cir.r+E){
+        return {0, {}};
+    }
+    if (abs(w-cir.r) < E){
+        return {1, {x}};
+    }
+    Pt change = Pt(line.b, -line.a).norm()*sqrt(cir.r*cir.r-w*w);
+    return {2, {x-change, x+change}};
+}
+
+pair<int, vector<Pt>> inter(Cr cir, Cr cir1){
+    if (cir == cir1){
+        return {3, {}};
+    }
+    if (cir.c == cir1.c){
+        return {0, {}};
+    }
+    return inter(rad(cir, cir1), cir);
+}
+
+pair<bool, Pt> O_center(Pt x, Pt y, Pt z){
+    if (abs(cross(y-x, z-x)) < E){
+        return {false, Pt()};
+    }
+    return {true, inter(Ln(x, y).per((x+y)/2), Ln(x, z).per((x+z)/2)).second};
+}

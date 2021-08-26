@@ -1,0 +1,39 @@
+const long double E = 0.000000001;
+
+struct Ln{
+    int a, b;
+
+    Ln(int a1=0, int b1=0): a(a1), b(b1){}
+
+    bool operator<(Ln line){
+        return true;
+    }
+};
+
+long double inter(Ln line, Ln line1){
+    if (line.a == line1.a){
+        cout << "CHT, inter" << endl;
+        exit(1);
+    }
+    return ((long double)line1.b-line.b)/(line.a-line1.a);
+}
+
+struct CHT{
+    vector<pair<long double, Ln>> a;
+
+    void add(Ln line){
+        while (a.size() > 1 && inter(line, a[a.size()-2].second) > a.back().first+E){
+            a.pop_back();
+        }
+        if (a.empty()){
+            a.push_back({-INF, line});
+        }else{
+            a.push_back({inter(line, a.back().second), line});
+        }
+    }
+
+    int val(int x){
+        int num = lower_bound(a.begin(), a.end(), x, [](pair<long double, Ln> x, int y){return x.first+E < y;})-a.begin()-1;
+        return a[num].second.a*x+a[num].second.b;
+    }
+};

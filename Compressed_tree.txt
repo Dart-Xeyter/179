@@ -1,0 +1,103 @@
+vector<vector<int>> tree, up;
+vector<int> height, tin, tout;
+int time1 = 0, log1 = 20, number = -1;
+
+void make_LCA(int vertex, int parent, int h){
+    tin[vertex] = time1++, height[vertex] = h;
+    if (parent == -1){
+        up[vertex].push_back(vertex);
+    }else{
+        up[vertex].push_back(parent);
+    }
+    for (int q = 1; q < log1; q++){
+        up[vertex].push_back(up[up[vertex][q-1]][q-1]);
+    }
+    for (int q: tree[vertex]){
+        if (q != parent){
+            make_LCA(q, vertex, h+1);
+        }
+    }
+    tout[vertex] = time1++;
+}
+
+bool predok(int x, int y){
+    return tin[x] <= tin[y] && tout[y] <= tout[x];
+}
+
+int LCA(int x, int y){
+    if (predok(x, y)){
+        return x;
+    }
+    if (predok(y, x)){
+        return y;
+    }
+    for (int q = log1-1; q > -1; q--){
+        if (!predok(up[x][q], y)){
+            x = up[x][q];
+        }
+    }
+    return up[x][0];
+}
+
+vector<set<p>> f;
+vector<p> parents;
+vector<vector<p>> d;
+vector<int> mark;
+
+void DFS_make_tree(int vertex){
+    d[vertex] = {};
+    for (p q: f[vertex]){
+        d[vertex].push_back(q);
+    }
+    if (parents[vertex].first != -1){
+        d[vertex].push_back(parents[vertex]);
+    }
+    for (p q: f[vertex]){
+        DFS_make_tree(q.first);
+    }
+}
+
+int make_compressed_tree(vector<int> &a){
+    int n = a.size();
+    sort(a.begin(), a.end(), [](int x, int y){return tout[x] < tout[y];});
+    f[a[0]] = {}, parents[a[0]] = {-1, -1};
+    int now = a[0];
+    for (int q = 1; q < n; q++){
+        if (predok(now, a[q])){
+            f[now].insert({a[q], height[now]-height[a[q]]});
+            f[a[q]] = {}, parents[a[q]] = {now, height[now]-height[a[q]]};
+            continue;
+        }
+        while (parents[now].first != -1 && !predok(parents[now].first, a[q])){
+            now = parents[now].first;
+        }
+        int z = LCA(now, a[q]), parent = parents[now].first;
+        if (z != parent){
+            f[z] = {}, parents[z] = {-1, -1};
+        }
+        if (z != a[q]){
+            f[z].insert({a[q], height[a[q]]-height[z]});
+            f[a[q]] = {}, parents[a[q]] = {z, height[a[q]]-height[z]};
+        }
+        if (z == parent){
+            now = a[q];
+            continue;
+        }
+        if (parent != -1){
+            f[parent].erase({now, height[now]-height[parent]});
+            f[parent].insert({z, height[z]-height[parent]});
+            parents[z] = {parent, height[z]-height[parent]};
+        }
+        f[z].insert({now, height[now]-height[z]});
+        parents[now] = {z, height[now]-height[z]};
+        now = a[q];
+    }
+    while (parents[now].first != -1){
+        now = parents[now].first;
+    }
+    DFS_make_tree(now);
+    for (int q: a){
+        mark[q] = number;
+    }
+    return now;
+}
