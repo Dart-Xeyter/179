@@ -1,0 +1,30 @@
+struct Sparse{
+    vector<vector<int>> mins;
+    vector<int> deg;
+    int log1;
+
+    Sparse(vector<int> &a){
+        int n = a.size(), q2 = 1;
+        log1 = 0, deg = {0};
+        while (q2 <= n){
+            for (int q = 0; q < q2; q++){
+                deg.push_back(log1);
+            }
+            q2 *= 2, log1++;
+        }
+        mins.assign(n, vector<int>(log1));
+        for (int q = 0; q < n; q++){
+            mins[q][0] = a[q];
+        }
+        for (int q = 2; q <= log1; q++){
+            int w = (1 << (q-2));
+            for (int q1 = 0; q1 < n; q1++){
+                mins[q1][q-1] = min(mins[q1][q-2], (q1 < n-w ? mins[q1+w][q-2] : INF));
+            }
+        }
+    }
+
+    int ans(int l, int r){
+        return min(mins[l][deg[r-l]], mins[r-(1 << deg[r-l])][deg[r-l]]);
+    }
+};

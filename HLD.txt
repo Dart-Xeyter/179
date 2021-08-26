@@ -1,0 +1,113 @@
+struct Fen{
+    vector<int> fen;
+    int n;
+
+    Fen(int n1){
+        n = n1;
+        fen.assign(n, 0);
+    }
+
+    void plus(int q, int x){
+        for (; q < n; q |= (q + 1)) {
+            fen[q] += x;
+        }
+    }
+
+    int sum(int q){
+        int ans = 0;
+        for (; q >= 0; q = (q & (q+1))-1){
+            ans += fen[q];
+        }
+        return ans;
+    }
+
+    int sum(int l, int r){
+        return sum(r-1)-sum(l-1);
+    }
+};
+
+vector<vector<p>> d;
+vector<p> parents;
+vector<pair<p, int>> edges;
+vector<int> sizes, order, end1;
+int height[1000179], tin[1000179], tout[1000179], up[20000179], num[1000179];
+int time1 = 0;
+
+int DFS(int vertex, int parent, int x){
+    parents[vertex] = {parent, x}, sizes[vertex] = 1;
+    tin[vertex] = time1++;
+    if (parent == -1){
+        height[vertex] = 0;
+        fill(up+20*vertex, up+20*vertex+20, vertex);
+    }else{
+        height[vertex] = height[parent]+1;
+        up[20*vertex] = parent;
+        for (int q = 1; q < 20; q++){
+            up[20*vertex+q] = up[20*up[20*vertex+q-1]+q-1];
+        }
+    }
+    for (p q: d[vertex]){
+        if (q.first != parent){
+            sizes[vertex] += DFS(q.first, vertex, q.second);
+        }
+    }
+    tout[vertex] = time1++;
+    return sizes[vertex];
+}
+
+int LCA(int x, int y){
+    if (tin[x] <= tin[y] && tout[y] <= tout[x]){
+        return x;
+    }
+    if (tin[y] <= tin[x] && tout[x] <= tout[y]){
+        return y;
+    }
+    int z = x;
+    for (int q = 19; q > -1; q--){
+        if (tin[up[20*z+q]] >= tin[y] || tout[y] >= tout[up[20*z+q]]){
+            z = up[20*z+q];
+        }
+    }
+    return up[20*z];
+}
+
+Fen fen = Fen(1);
+
+int answer(int x, int y, int z){
+    int ans = 0;
+    while (x != y){
+        if (sizes[x]*2 < sizes[parents[x].first]){
+            ans += (parents[x].second <= z), x = parents[x].first;
+        }else{
+            ans += fen.sum(max(num[end1[x]], num[y]), num[x]);
+            x = (num[end1[x]] >= num[y] ? end1[x] : y);
+        }
+    }
+    return ans;
+}
+
+void DFS1(int vertex, int parent){
+    p next1 = {-1, -1};
+    for (p q: d[vertex]){
+        if (q.first != parent && sizes[q.first]*2 >= sizes[vertex]){
+            next1 = q, end1[q.first] = end1[vertex];
+        }
+    }
+    if (next1.first != -1){
+        edges.push_back({{vertex, next1.first}, next1.second});
+        vector<p> now = {next1};
+        for (p q: d[vertex]){
+            if (q.first != parent && q.first != next1.first){
+                now.push_back(q);
+            }
+        }
+        d[vertex] = now;
+    }
+    num[vertex] = order.size();
+    order.push_back(vertex);
+    for (p q: d[vertex]){
+        if (q.first != parent){
+            DFS1(q.first, vertex);
+        }
+    }
+}

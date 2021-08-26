@@ -1,0 +1,125 @@
+set<p> bridge;
+vector<int> tin, up;
+int time1;
+
+void bridges(int vertex, int parent){
+    s[vertex] = false, tin[vertex] = up[vertex] = time1++;
+    for (int q: d[vertex]){
+        if (s[q]){
+            bridges(q, vertex);
+            if (up[q] > tin[vertex]){
+                bridge.insert({q, vertex});
+                bridge.insert({vertex, q});
+            }
+            up[vertex] = min(up[vertex], up[q]);
+        }else if (q != parent){
+            up[vertex] = min(up[vertex], tin[q]);
+        }
+    }
+}
+
+vector<vector<pair<int, p>>> d1;
+vector<vector<int>> comp;
+vector<p> num;
+
+void cond(int vertex, int now){
+    s[vertex] = false, num[vertex] = {now, comp[now].size()};
+    comp[now].push_back(vertex);
+    for (int q: d[vertex]){
+        if (s[q] && bridge.find({q, vertex}) == bridge.end()){
+            cond(q, now);
+        }else if (s[q]){
+            d1.emplace_back();
+            d1[now].push_back({comp.size(), {vertex, q}});
+            d1[comp.size()].push_back({now, {q, vertex}});
+            comp.emplace_back();
+            cond(q, (int)comp.size()-1);
+        }
+    }
+}
+
+
+
+
+
+###################################################################################################
+
+
+
+
+
+vector<p> order_num;
+vector<int> num_vertex, right_num;
+vector<bool> s_renum;
+
+void DFS_num(int vertex){
+    s_renum[vertex] = false;
+    order_num.emplace_back(order_num.size(), vertex);
+    for (int q: d[vertex]){
+        if (s_renum[q]){
+            DFS_num(q);
+        }
+    }
+}
+
+void renumbering(){
+    int n = d.size();
+    s_renum.assign(n, true);
+    for (int q = 0; q < n; q++) {
+        if (s_renum[q]) {
+            DFS_num(0);
+        }
+    }
+    num_vertex.assign(n, -1), right_num.assign(n, -1);
+    for (int q = 0; q < n; q++){
+        num_vertex[order_num[q].second] = q;
+        right_num[q] = order_num[q].second;
+    }
+    vector<vector<int>> d1_renum(n);
+    for (int q = 0; q < n; q++){
+        for (int q1: d[q]){
+            d1_renum[num_vertex[q]].push_back(num_vertex[q1]);
+        }
+    }
+    d = d1_renum;
+}
+
+
+
+
+
+###################################################################################################
+
+
+
+
+
+vector<vector<int>> d;
+vector<int> pa, pb;
+vector<bool> was;
+
+bool DFS(int vertex){
+    was[vertex] = true;
+    for (int q: d[vertex]){
+        if (pb[q] == -1 || (!was[pb[q]] && DFS(pb[q]))){
+            pa[vertex] = q, pb[q] = vertex;
+            return true;
+        }
+    }
+    return false;
+}
+
+vector<p> Kun(int n, int m){
+    pa.assign(n, -1), pb.assign(m, -1);
+    for (int q = 0; q < n; q++){
+        was.assign(n, false);
+        DFS(q);
+    }
+    vector<p> ans;
+    for (int q = 0; q < n; q++){
+        if (pa[q] != -1){
+            ans.push_back({q, pa[q]});
+        }
+    }
+    return ans;
+}

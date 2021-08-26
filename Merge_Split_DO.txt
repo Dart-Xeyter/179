@@ -1,0 +1,95 @@
+const int C = (1LL << 30);
+
+struct Node{
+    Node *l, *r;
+    int left, right, sum;
+
+    Node(int left1, int right1): l(nullptr), r(nullptr), left(left1), right(right1), sum(0){}
+};
+
+void update(Node* tree){
+    if (tree == nullptr){
+        return;
+    }
+    tree->sum = 0;
+    if (tree->l != nullptr){
+        tree->sum += tree->l->sum;
+    }
+    if (tree->r != nullptr){
+        tree->sum += tree->r->sum;
+    }
+}
+
+Node* merge(Node* tree1, Node* tree2){
+    if (tree1 == nullptr){
+        return tree2;
+    }
+    if (tree2 == nullptr){
+        return tree1;
+    }
+    if (tree1->right-tree1->left == 1){
+        tree1->sum += tree2->sum;
+        return tree1;
+    }
+    tree1->l = merge(tree1->l, tree2->l), tree1->r = merge(tree1->r, tree2->r);
+    update(tree1);
+    return tree1;
+}
+
+pair<Node*, Node*> split(Node* tree, int k){
+    if (tree == nullptr){
+        return {nullptr, nullptr};
+    }
+    if (tree->right-tree->left == 1){
+        if (k <= tree->left){
+            return {tree, nullptr};
+        }
+        return {nullptr, tree};
+    }
+    int m = (tree->left+tree->right)/2;
+    if (k < m){
+        pair<Node*, Node*> trees = split(tree->l, k);
+        tree->l = trees.second;
+        update(tree);
+        Node* left_tree = new Node(tree->left, tree->right);
+        left_tree->l = trees.first;
+        update(left_tree);
+        return {left_tree, tree};
+    }
+    pair<Node*, Node*> trees = split(tree->r, k);
+    tree->r = trees.first;
+    update(tree);
+    Node* right_tree = new Node(tree->left, tree->right);
+    right_tree->r = trees.second;
+    update(right_tree);
+    return {tree, right_tree};
+}
+
+Node* add(Node* tree, int x){
+    if (tree->right-tree->left == 1){
+        tree->sum++;
+        return tree;
+    }
+    int m = (tree->left+tree->right)/2;
+    if (x < m){
+        tree->l = add((tree->l == nullptr ? new Node(tree->left, m) : tree->l), x);
+    }else{
+        tree->r = add((tree->r == nullptr ? new Node(m, tree->right) : tree->r), x);
+    }
+    update(tree);
+    return tree;
+}
+
+void DFS_DO(Node* tree){
+    if (tree == nullptr){
+        return;
+    }
+    if (tree->right-tree->left == 1){
+        for (int q = 0; q < tree->sum; q++){
+            cout << tree->left << ' ';
+        }
+        return;
+    }
+    DFS_DO(tree->l);
+    DFS_DO(tree->r);
+}

@@ -1,0 +1,64 @@
+mt19937 randint(chrono::high_resolution_clock::now().time_since_epoch().count());
+
+
+
+
+
+unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
+shuffle(perm.begin(), perm.end(), std::default_random_engine(seed));
+
+
+
+
+
+#include<bits/stdc++.h>
+#define int long long
+#define p pair<int, int>
+#define endl '\n'
+const int INF = 1000000001;
+
+using namespace std;
+
+signed main(){
+    ios::sync_with_stdio(false);
+    cin.tie(nullptr);
+    cout.tie(nullptr);
+    return 0;
+}
+
+
+
+
+
+const int MAX_MEM = 1e8;
+int mpos = 0;
+char mem[MAX_MEM];
+inline void * operator new ( size_t n ) {
+    char *res = mem + mpos;
+    mpos += n;
+    assert(mpos <= MAX_MEM);
+    return (void *)res;
+}
+inline void operator delete ( void * ) { }
+
+
+
+
+
+#pragma GCC optimize("Ofast,unroll-loops")
+#pragma GCC target("avx,avx2,fma")
+
+
+
+
+
+#include<bits/extc++.h>
+#define int long long
+#define p pair<int, int>
+#define endl '\n'
+const int INF = 1000000001;
+
+using namespace __gnu_pbds;
+using namespace std;
+
+typedef tree<int, null_type, less<>, rb_tree_tag, tree_order_statistics_node_update> ordered_set;

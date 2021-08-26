@@ -1,0 +1,40 @@
+vector<vector<int>> d, up;
+vector<int> height, tin, tout;
+int time1 = 0, log1 = 20;
+
+void make_LCA(int vertex, int parent, int h){
+    tin[vertex] = time1++, height[vertex] = h;
+    if (parent == -1){
+        up[vertex].push_back(vertex);
+    }else{
+        up[vertex].push_back(parent);
+    }
+    for (int q = 1; q < log1; q++){
+        up[vertex].push_back(up[up[vertex][q-1]][q-1]);
+    }
+    for (int q: d[vertex]){
+        if (q != parent){
+            make_LCA(q, vertex, h+1);
+        }
+    }
+    tout[vertex] = time1++;
+}
+
+bool predok(int x, int y){
+    return tin[x] <= tin[y] && tout[y] <= tout[x];
+}
+
+int LCA(int x, int y){
+    if (predok(x, y)){
+        return x;
+    }
+    if (predok(y, x)){
+        return y;
+    }
+    for (int q = log1-1; q > -1; q--){
+        if (!predok(up[x][q], y)){
+            x = up[x][q];
+        }
+    }
+    return up[x][0];
+}

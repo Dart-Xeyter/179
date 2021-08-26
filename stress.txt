@@ -1,0 +1,50 @@
+#include<bits/stdc++.h>
+#define int long long
+#define p pair<int, int>
+#define endl '\n'
+const int INF = 1000000001;
+
+using namespace std;
+
+void hard(){
+
+}
+
+void easy(){
+
+}
+
+void solve(){
+
+}
+
+mt19937 randint(179);
+
+void gen(int n, int m){
+
+}
+
+void debug(){
+    int q2 = 0;
+    while (true){
+        if (q2 == 0){
+            int q4 = 0;
+        }
+        cout << q2++ << endl;
+        int n = randint() % 10+1, m = randint() % 10+1;
+        vector<int> a = gen(n, m);
+        int ans1 = easy(a), ans2 = hard(a);
+        if (ans1 != ans2){
+            exit(179);
+        }
+    }
+}
+
+signed main(){
+    ios::sync_with_stdio(false);
+    cin.tie(nullptr);
+    cout.tie(nullptr);
+    solve();
+    //debug();
+    return 0;
+}

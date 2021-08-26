@@ -1,0 +1,164 @@
+struct DO{
+    vector<int> sum1, min1, max1, min2, max2, cnt_min, cnt_max, lens, push_min, push_max, push_add;
+    int len;
+
+    DO(vector<int> a){
+        len = 1;
+        while (len < a.size()){
+            len *= 2;
+        }
+        min1.assign(2*len, INF), max1.assign(2*len, -INF), min2.assign(2*len, INF), max2.assign(2*len, -INF);
+        sum1.assign(2*len, 0), lens.assign(2*len, 1), cnt_min.assign(2*len, 1), cnt_max.assign(2*len, 1);
+        push_min.assign(2*len, INF), push_max.assign(2*len, -INF), push_add.assign(2*len, 0);
+        for (int q = len; q < len+a.size(); q++){
+            sum1[q] = min1[q] = max1[q] = a[q-len];
+        }
+        for (int q = len-1; q > 0; q--){
+            lens[q] = lens[2*q]+lens[2*q+1];
+            update_son(q);
+        }
+    }
+
+    void min_push(int q){
+        int x = push_min[q];
+        if (x < max1[2*q]){
+            if (min1[2*q] == max1[2*q]){
+                min1[2*q] = x;
+            }else if (min2[2*q] == max1[2*q]){
+                min2[2*q] = x;
+            }
+            sum1[2*q] -= (max1[2*q]-x)*cnt_max[2*q], max1[2*q] = x;
+        }
+        if (x < max1[2*q+1]){
+            if (min1[2*q+1] == max1[2*q+1]){
+                min1[2*q+1] = x;
+            }else if (min2[2*q+1] == max1[2*q+1]){
+                min2[2*q+1] = x;
+            }
+            sum1[2*q+1] -= (max1[2*q+1]-x)*cnt_max[2*q+1], max1[2*q+1] = x;
+        }
+    }
+
+    void max_push(int q){
+        int x = push_max[q];
+        if (x > min1[2*q]){
+            if (max1[2*q] == min1[2*q]){
+                max1[2*q] = x;
+            }else if (max2[2*q] == min1[2*q]){
+                max2[2*q] = x;
+            }
+            sum1[2*q] += (x-min1[2*q])*cnt_min[2*q], min1[2*q] = x;
+        }
+        if (x > min1[2*q+1]){
+            if (max1[2*q+1] == min1[2*q+1]){
+                max1[2*q+1] = x;
+            }else if (max2[2*q+1] == min1[2*q+1]){
+                max2[2*q+1] = x;
+            }
+            sum1[2*q+1] += (x-min1[2*q+1])*cnt_min[2*q+1], min1[2*q+1] = x;
+        }
+    }
+
+    void push(int q){
+        int x = push_add[q];
+        sum1[2*q] += x*lens[2*q], max1[2*q] += x, max2[2*q] += x, min1[2*q] += x, min2[2*q] += x;
+        sum1[2*q+1] += x*lens[2*q+1], max1[2*q+1] += x, max2[2*q+1] += x, min1[2*q+1] += x, min2[2*q+1] += x;
+        min_push(q);
+        max_push(q);
+        push_min[2*q] += x, push_min[2*q+1] += x, push_max[2*q] += x, push_max[2*q+1] += x, push_add[2*q] += x, push_add[2*q+1] += x;
+        push_min[2*q] = min(push_min[2*q], push_min[q]), push_min[2*q+1] = min(push_min[2*q+1], push_min[q]);
+        push_max[2*q] = max(push_max[2*q], push_max[q]), push_max[2*q+1] = max(push_max[2*q+1], push_max[q]);
+        push_min[q] = INF, push_max[q] = -INF, push_add[q] = 0;
+    }
+
+    void update_son(int q){
+        sum1[q] = sum1[2*q]+sum1[2*q+1];
+        if (min1[2*q] < min1[2*q+1]){
+            min1[q] = min1[2*q], min2[q] = min(min2[2*q], min1[2*q+1]), cnt_min[q] = cnt_min[2*q];
+        }else if (min1[2*q] > min1[2*q+1]){
+            min1[q] = min1[2*q+1], min2[q] = min(min1[2*q], min2[2*q+1]), cnt_min[q] = cnt_min[2*q+1];
+        }else{
+            min1[q] = min1[2*q], min2[q] = min(min2[2*q], min2[2*q+1]), cnt_min[q] = cnt_min[2*q]+cnt_min[2*q+1];
+        }
+        if (max1[2*q] > max1[2*q+1]){
+            max1[q] = max1[2*q], max2[q] = max(max2[2*q], max1[2*q+1]), cnt_max[q] = cnt_max[2*q];
+        }else if (max1[2*q] < max1[2*q+1]){
+            max1[q] = max1[2*q+1], max2[q] = max(max1[2*q], max2[2*q+1]), cnt_max[q] = cnt_max[2*q+1];
+        }else{
+            max1[q] = max1[2*q], max2[q] = max(max2[2*q], max2[2*q+1]), cnt_max[q] = cnt_max[2*q]+cnt_max[2*q+1];
+        }
+    }
+
+    void min_set(int l, int r, int l1, int r1, int q, int x){
+        if (l >= r1 || l1 >= r || max1[q] <= x){
+            return;
+        }
+        if (l1 <= l && r <= r1 && max2[q] < x){
+            if (min1[q] == max1[q]){
+                min1[q] = x;
+            }else if (min2[q] == max1[q]){
+                min2[q] = x;
+            }
+            sum1[q] -= (max1[q]-x)*cnt_max[q], max1[q] = x, push_min[q] = x;
+            return;
+        }
+        push(q);
+        int m = (l+r)/2;
+        min_set(l, m, l1, r1, 2*q, x);
+        min_set(m, r, l1, r1, 2*q+1, x);
+        update_son(q);
+    }
+
+    void max_set(int l, int r, int l1, int r1, int q, int x){
+        if (l >= r1 || l1 >= r || min1[q] >= x){
+            return;
+        }
+        if (l1 <= l && r <= r1 && min2[q] > x){
+            if (max1[q] == min1[q]){
+                max1[q] = x;
+            }else if (max2[q] == min1[q]){
+                max2[q] = x;
+            }
+            sum1[q] += (x-min1[q])*cnt_min[q], min1[q] = x, push_max[q] = x;
+            return;
+        }
+        push(q);
+        int m = (l+r)/2;
+        max_set(l, m, l1, r1, 2*q, x);
+        max_set(m, r, l1, r1, 2*q+1, x);
+        update_son(q);
+    }
+
+    void set(int l, int r, int l1, int r1, int q, int x){
+        min_set(l, r, l1, r1, q, x);
+        max_set(l, r, l1, r1, q, x);
+    }
+
+    void plus_set(int l, int r, int l1, int r1, int q, int x){
+        if (l >= r1 || l1 >= r){
+            return;
+        }
+        if (l1 <= l && r <= r1){
+            sum1[q] += x*lens[q], max1[q] += x, max2[q] += x, min1[q] += x, min2[q] += x;
+            push_min[q] += x, push_max[q] += x, push_add[q] += x;
+            return;
+        }
+        push(q);
+        int m = (l+r)/2;
+        plus_set(l, m, l1, r1, 2*q, x);
+        plus_set(m, r, l1, r1, 2*q+1, x);
+        update_son(q);
+    }
+
+    int sum_find(int l, int r, int l1, int r1, int q){
+        if (l >= r1 || l1 >= r){
+            return 0;
+        }
+        if (l1 <= l && r <= r1){
+            return sum1[q];
+        }
+        push(q);
+        int m = (l+r)/2;
+        return sum_find(l, m, l1, r1, 2*q)+sum_find(m, r, l1, r1, 2*q+1);
+    }
+};

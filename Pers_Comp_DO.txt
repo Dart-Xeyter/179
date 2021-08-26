@@ -1,0 +1,50 @@
+struct Node{
+    Node *l, *r;
+    int left, right, sum;
+
+    Node(int left1, int right1): l(nullptr), r(nullptr), left(left1), right(right1), sum(0){}
+};
+
+void update(Node* tree){
+    if (tree == nullptr){
+        return;
+    }
+    tree->sum = 0;
+    if (tree->l != nullptr){
+        tree->sum += tree->l->sum;
+    }
+    if (tree->r != nullptr){
+        tree->sum += tree->r->sum;
+    }
+}
+
+Node* add(Node* tree, int x){
+    Node* new_node = new Node(tree->left, tree->right);
+    new_node->l = tree->l, new_node->r = tree->r, new_node->sum = tree->sum;
+    if (tree->right-tree->left == 1){
+        new_node->sum++;
+        return new_node;
+    }
+    int m = (tree->left+tree->right)/2;
+    if (x < m){
+        new_node->l = add((tree->l == nullptr ? new Node(tree->left, m) : tree->l), x);
+    }else{
+        new_node->r = add((tree->r == nullptr ? new Node(m, tree->right) : tree->r), x);
+    }
+    update(new_node);
+    return new_node;
+}
+
+int num_k(Node* tree, int k){
+    if (tree == nullptr || tree->left >= k){
+        return 0;
+    }
+    if (tree->right <= k){
+        return tree->sum;
+    }
+    int m = (tree->left+tree->right)/2;
+    if (k <= m){
+        return num_k(tree->l, k);
+    }
+    return (tree->l != nullptr ? tree->l->sum : 0)+num_k(tree->r, k);
+}

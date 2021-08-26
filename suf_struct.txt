@@ -1,0 +1,128 @@
+vector<int> suf_mas(string &s){
+    s += ' ';
+    int n = s.size();
+    vector<int> sufmas(n), cls(n, 0);
+    iota(sufmas.begin(), sufmas.end(), 0);
+    sort(sufmas.begin(), sufmas.end(), [&s](int x, int y){return s[x] < s[y];});
+    for (int q = 1; q < n; q++){
+        cls[sufmas[q]] = cls[sufmas[q-1]]+(s[sufmas[q]] != s[sufmas[q-1]]);
+    }
+    int q2 = 1;
+    while (cls[sufmas[n-1]] != n-1){
+        vector<vector<int>> d(n);
+        for (int q : sufmas){
+            d[cls[(q-q2+n) % n]].push_back((q-q2+n) % n);
+        }
+        sufmas = {};
+        for (int q = 0; q < n; q++){
+            for (int q1 : d[q]){
+                sufmas.push_back(q1);
+            }
+        }
+        vector<int> cls1(n, 0);
+        for (int q = 1; q < n; q++){
+            cls1[sufmas[q]] = cls1[sufmas[q-1]];
+            if (cls[sufmas[q]] != cls[sufmas[q-1]] || cls[(sufmas[q]+q2) % n] != cls[(sufmas[q-1]+q2) % n]){
+                cls1[sufmas[q]]++;
+            }
+        }
+        cls = cls1, q2 *= 2;
+    }
+    s.pop_back(), sufmas.erase(sufmas.begin());
+    return sufmas;
+}
+
+vector<int> LCP(string &s, vector<int> &sufmas){
+    s += ' ';
+    int n = sufmas.size();
+    vector<int> lcp(n, 0), num(n);
+    for (int q = 0; q < n; q++){
+        num[sufmas[q]] = q;
+    }
+    for (int q = 0; q < n; q++){
+        if (num[q] == n-1){
+            continue;
+        }
+        int q1 = (q == 0 ? 0 : max(0, lcp[num[q-1]]-1)), w = sufmas[num[q]+1];
+        while (s[q+q1] == s[w+q1]){
+            q1++;
+        }
+        lcp[num[q]] = q1;
+    }
+    s.pop_back();
+    return lcp;
+}
+
+
+
+
+
+###################################################################################################
+
+
+
+
+
+vector<map<char, int>> automaton;
+vector<int> suf_link, max_len;
+
+int add_symbol(char x, int now){
+    int last = automaton.size();
+    automaton.emplace_back(), suf_link.push_back(-1), max_len.push_back(0);
+    while (now != -1 && automaton[now].find(x) == automaton[now].end()){
+        automaton[now][x] = last, max_len[last] = max(max_len[last], max_len[now]+1), now = suf_link[now];
+    }
+    if (now == -1){
+        suf_link[last] = 0;
+    }else{
+        int bad = automaton[now][x];
+        if (max_len[bad] == max_len[now]+1){
+            suf_link[last] = bad;
+        }else{
+            int clone = automaton.size();
+            automaton.push_back(automaton[bad]), suf_link.push_back(-1), max_len.push_back(0);
+            while (now != -1 && automaton[now][x] == bad){
+                automaton[now][x] = clone, max_len[clone] = max(max_len[clone], max_len[now]+1), now = suf_link[now];
+            }
+            suf_link[clone] = suf_link[bad], suf_link[last] = suf_link[bad] = clone;
+        }
+    }
+    return last;
+}
+
+void build_automaton(string &s){
+    automaton = {{}}, suf_link = {-1}, max_len = {0};
+    int now = 0;
+    for (char q: s){
+        now = add_symbol(q, now);
+    }
+}
+
+vector<int> term, right_context;
+vector<bool> was;
+vector<pair<char, int>> parent;
+
+void DFS(int vertex){
+    was[vertex] = true, right_context[vertex] = term[vertex];
+    for (auto q: automaton[vertex]){
+        if (!was[q.second]){
+            DFS(q.second);
+        }
+        if (max_len[q.second] == max_len[vertex]+1){
+            parent[q.second] = {q.first, vertex};
+        }
+        right_context[vertex] += right_context[q.second];
+    }
+}
+
+void build_everything(string &s){
+    int m = automaton.size(), vertex = 0;
+    for (char q: s){
+        vertex = automaton[vertex][q];
+    }
+    term.assign(m, false), parent.assign(m, {}), was.assign(m, false), right_context.assign(m, 0);;
+    while (vertex != -1){
+        term[vertex] = true, vertex = suf_link[vertex];
+    }
+    DFS(0);
+}

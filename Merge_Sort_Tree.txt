@@ -1,0 +1,42 @@
+struct MST{
+    vector<vector<int>> sort1;
+    int len;
+
+    MST(vector<int> &a){
+        len = 1;
+        while (len < a.size()){
+            len *= 2;
+        }
+        sort1.assign(2*len, {});
+        for (int q = len; q < len+a.size(); q++){
+            sort1[q].push_back(a[q-len]);
+        }
+        for (int q = len-1; q > 0; q--){
+            int q1 = 0;
+            for (int q2: sort1[q*2]){
+                while (q1 < sort1[q*2+1].size() && sort1[2*q+1][q1] < q2){
+                    sort1[q].push_back(sort1[2*q+1][q1++]);
+                }
+                sort1[q].push_back(q2);
+            }
+            while (q1 < sort1[q*2+1].size()){
+                sort1[q].push_back(sort1[q*2+1][q1++]);
+            }
+        }
+    }
+
+    vector<int> f;
+
+    void ans(int l, int r, int l1, int r1, int q){
+        if (l >= r1 || l1 >= r){
+            return;
+        }
+        if (l1 <= l && r <= r1){
+            f.push_back(q);
+            return;
+        }
+        int m = (l+r)/2;
+        ans(l, m, l1, r1, 2*q);
+        ans(m, r, l1, r1, 2*q+1);
+    }
+};

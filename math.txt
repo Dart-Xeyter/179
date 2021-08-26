@@ -1,0 +1,258 @@
+vector<int> fact, rev_fact;
+const int C = 1000000007;
+
+int pow1(int x, int y, int z=C){
+    if (y == 0){
+        return 1;
+    }
+    if (y % 2 == 0){
+        return pow1(x*x % z, y/2, z);
+    }
+    return pow1(x, y-1, z)*x % z;
+}
+
+void facts(int n){
+    fact = {1}, rev_fact = {1};
+    for (int q = 1; q <= n; q++){
+        fact.push_back(fact.back()*q % C);
+        rev_fact.push_back(pow1(fact.back(), C-2));
+    }
+}
+
+int c(int k, int n){
+    if (k > n){
+        return 0;
+    }
+    return fact[n]*rev_fact[k] % C*rev_fact[n-k] % C;
+}
+
+
+
+
+
+###################################################################################################
+
+
+
+
+
+long double log(int a, int b){
+    return log(b)/log(a);
+}
+
+vector<int> factor(int n){
+    vector<int> ans;
+    int sqrt1 = sqrt(n);
+    for (int q = 2; q <= sqrt1; q++){
+        if (n % q == 0){
+            ans.push_back(q);
+        }
+        while (n % q == 0){
+            n /= q;
+        }
+    }
+    if (n != 1){
+        ans.push_back(n);
+    }
+    return ans;
+}
+
+int phi(int n){
+    int ans = 1, sqrt1 = sqrt(n);
+    for (int q = 2; q <= sqrt1; q++){
+        int q1 = 1;
+        while (n % q == 0){
+            n /= q, q1 *= q;
+        }
+        ans *= (q1-q1/q);
+    }
+    return ans*max(n-1, 1LL);
+}
+
+
+
+
+
+###################################################################################################
+
+
+
+
+
+__int128 pow1(__int128 x, __int128 y, __int128 z){
+    if (y == 0){
+        return 1;
+    }
+    if (y % 2 == 0){
+        return pow1(x*x % z, y/2, z);
+    }
+    return pow1(x, y-1, z)*x % z;
+}
+
+mt19937 randint(179);
+
+bool is_prime(int n, int t=20){
+    if (n == 1){
+        return false;
+    }
+    int q1 = 0, u = n-1;
+    while (u % 2 == 0){
+        u /= 2, q1++;
+    }
+    for (int q = 0; q < t; q++){
+        __int128 x = randint() % n, now = pow1(x, u, n);
+        if (now <= 1){
+            continue;
+        }
+        bool flag = false;
+        for (int q2 = 0; q2 < q1; q2++){
+            if (now == n-1){
+                flag = true;
+                break;
+            }
+            now = now*now % n;
+        }
+        if (!flag){
+            return false;
+        }
+    }
+    return true;
+}
+
+
+
+
+
+###################################################################################################
+
+
+
+
+
+__int128 pow1(__int128 x, __int128 y, __int128 z){
+    if (y == 0){
+        return 1;
+    }
+    if (y % 2 == 0){
+        return pow1(x*x % z, y/2, z);
+    }
+    return pow1(x, y-1, z)*x % z;
+}
+
+mt19937 randint(179);
+
+bool is_prime(int n, int t=20){
+    if (n == 1){
+        return false;
+    }
+    int q1 = 0, u = n-1;
+    while (u % 2 == 0){
+        u /= 2, q1++;
+    }
+    for (int q = 0; q < t; q++){
+        __int128 x = randint() % n, now = pow1(x, u, n);
+        if (now <= 1){
+            continue;
+        }
+        bool flag = false;
+        for (int q2 = 0; q2 < q1; q2++){
+            if (now == n-1){
+                flag = true;
+                break;
+            }
+            now = now*now % n;
+        }
+        if (!flag){
+            return false;
+        }
+    }
+    return true;
+}
+
+int func(__int128 x, int n){
+    return (x*x+1) % n;
+}
+
+vector<int> Pollard(int n){
+    vector<int> primes = {2, 3, 5, 7}, for_fact, ans;
+    for (int q1: primes){
+        while (n % q1 == 0){
+            ans.push_back(q1);
+            n /= q1;
+        }
+    }
+    if (n == 1){
+        return ans;
+    }
+    for_fact.push_back(n);
+    while (!for_fact.empty()){
+        n = for_fact.back();
+        for_fact.pop_back();
+        if (is_prime(n)){
+            ans.push_back(n);
+            continue;
+        }
+        while (true){
+            int x = randint() % n, y = x, t = 1;
+            while (t == 1){
+                x = func(x, n), y = func(func(y, n), n), t = __gcd((x >= y ? x-y : y-x), n);
+            }
+            if (t != n){
+                for_fact.push_back(t);
+                for_fact.push_back(n/t);
+                break;
+            }
+        }
+    }
+    return ans;
+}
+
+
+
+
+
+###################################################################################################
+
+
+
+
+
+pair<int, p> ax_by(int x, int y){
+    if (x < y){
+        pair<int, p> k = ax_by(y, x);
+        return {k.first, {k.second.second, k.second.first}};
+    }
+    if (y == 0){
+        return {x, {1, 0}};
+    }
+    pair<int, p> k = ax_by(y, x % y);
+    return {k.first, {k.second.second, k.second.first-x/y*k.second.second}};
+}
+
+p ax_by_c(int x, int y, int c){
+    pair<int, p> k = ax_by(x, y);
+    if (c % k.first != 0){
+        return {-1, -1};
+    }else{
+        k.second.first *= c/k.first, k.second.second *= c/k.first;
+    }
+    int difx = y/k.first, dify = x/k.first;
+    if (k.second.first < 0){
+        int w = (abs(k.second.first)+difx-1)/difx;
+        k.second.first += w*difx;
+        k.second.second -= w*dify;
+    }else{
+        int w = abs(k.second.first)/difx;
+        k.second.first -= w*difx;
+        k.second.second += w*dify;
+    }
+    return k.second;
+}
+
+int KTO(int a, int b, int n, int m){
+    p k = ax_by_c(n, m, b-a);
+    if (k == p(-1, -1)){
+        return -1;
+    }
+    return k.first*n+a;
+}

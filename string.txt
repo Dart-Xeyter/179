@@ -1,0 +1,68 @@
+vector<int> z_func(string &s){
+    vector<int> zf = {0};
+    int ind = 0, n = s.size();
+    for (int q = 1; q < n; q++){
+        int k = q;
+        if (zf[ind]+ind > q) {
+            k = min(zf[q - ind] + q, ind + zf[ind]);
+        }
+        while (k < n && s[k] == s[k-q]){
+            k++;
+        }
+        zf.push_back(k-q);
+        if (ind+zf[ind] < q+zf[q]){
+            ind = q;
+        }
+    }
+    return zf;
+}
+
+vector<int> pref_func(string &s){
+    int n = s.size();
+    vector<int> pref = {0};
+    for (int q = 1; q < n; q++){
+        int q1 = pref[q-1];
+        while (q1 > 0 && s[q] != s[q1]){
+            q1 = pref[q1-1];
+        }
+        if (s[q1] == s[q]){
+            pref.push_back(q1+1);
+        }else{
+            pref.push_back(0);
+        }
+    }
+    return pref;
+}
+
+vector<int> Manaker(vector<int> &a1){
+    int n = a1.size();
+    vector<int> a = {a1[0]};
+    for (int q = 1; q < n; q++){
+        a.push_back(INF);
+        a.push_back(a1[q]);
+    }
+    n = a.size();
+    vector<int> man = {1};
+    int ind = 0;
+    for (int q = 1; q < n; q++){
+        int k = q;
+        if (ind+man[ind] > q){
+            k = min(man[ind]+ind, q+man[2*ind-q]);
+        }
+        while (k < n && 2*q-k > -1 && a[k] == a[2*q-k]){
+            k++;
+        }
+        man.push_back(k-q);
+        if (k > man[ind]+ind){
+            ind = q;
+        }
+    }
+    for (int q = 0; q < n; q++){
+        if (a[q] == INF){
+            man[q] -= man[q] % 2;
+        }else{
+            man[q] -= 1-man[q] % 2;
+        }
+    }
+    return man;
+}
